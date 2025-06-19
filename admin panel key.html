@@ -1,0 +1,390 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TRADAR x MODS </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, #1a0933, #2a1a5e);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      padding: 20px;
+    }
+
+    .container {
+      background: rgba(10, 10, 30, 0.85);
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 450px;
+      width: 100%;
+      box-shadow: 0 0 30px rgba(0, 255, 234, 0.3);
+      backdrop-filter: blur(10px);
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      color: #00ffea;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+      text-shadow: 0 0 10px #00ffea;
+      animation: glow 2s infinite alternate;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 5px #00ffea; }
+      to { text-shadow: 0 0 15px #00ffea; }
+    }
+
+    .card-section {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      color: #00ffea;
+      margin: 10px 0 5px;
+      font-size: 0.9em;
+      text-transform: uppercase;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin: 5px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      transition: all 0.3s ease;
+    }
+
+    input, select {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid #00ffea;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      box-shadow: 0 0 10px #00ffea;
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    button {
+      background: linear-gradient(90deg, #00ffea, #00b7ff);
+      color: #1a0933;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px #00ffea;
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .status-indicator {
+      margin: 15px 0;
+      font-size: 0.9em;
+      text-align: center;
+      animation: slideIn 0.5s ease-in-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-10px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .indicator {
+      padding: 8px 15px;
+      border-radius: 6px;
+      font-weight: bold;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+
+    .on {
+      background: #00ff99;
+      color: #1a0933;
+      box-shadow: 0 0 10px #00ff99;
+    }
+
+    .off {
+      background: #ff4d4d;
+      color: #fff;
+      box-shadow: 0 0 10px #ff4d4d;
+    }
+
+    #currentPrediction, #currentPeriod {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      color: #00ffea;
+      font-weight: bold;
+    }
+
+    #stats {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 10px;
+      line-height: 1.6;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .loader {
+      border: 4px solid #00ffea;
+      border-top: 4px solid transparent;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-left: 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 400px) {
+      .container {
+        padding: 20px;
+        max-width: 100%;
+      }
+
+      h2 {
+        font-size: 1.5em;
+      }
+
+      input, select, button {
+        padding: 10px;
+        font-size: 0.9em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="adminPanel">
+    <h2>91 CLUB ADMIN PANEL</h2>
+    <div class="card-section">
+      <div id="predictionStatus" class="indicator">Loading Status...</div>
+    </div>
+    <div class="card-section">
+      <label>User Access Key</label>
+      <input type="text" id="accessKeyInput" />
+      <button onclick="updateAccessKey()">Update Access Key</button>
+    </div>
+    <div class="card-section">
+      <label>Prediction ON / OFF</label>
+      <select id="predictionSwitch">
+        <option value="true">ON</option>
+        <option value="false">OFF</option>
+      </select>
+      <button onclick="updateSwitch()">Update Prediction Switch</button>
+    </div>
+    <div class="card-section">
+      <label>Set Expiry Date</label>
+      <input type="date" id="expiryDateInput" />
+      <button onclick="updateExpiryDate()">Update Expiry Date</button>
+    </div>
+    <div class="card-section">
+      <label>Background AI ON / OFF</label>
+      <select id="bgAI">
+        <option value="true">ON</option>
+        <option value="false">OFF</option>
+      </select>
+      <button onclick="updateBgAI()">Update Background AI</button>
+    </div>
+    <div class="card-section">
+      <label>Manual Prediction</label>
+      <select id="manualPrediction">
+        <option value="BIG">BIG</option>
+        <option value="SMALL">SMALL</option>
+      </select>
+      <button onclick="setManualPrediction()">Set Prediction</button>
+    </div>
+    <div class="card-section">
+      <label>Current Prediction</label>
+      <div id="currentPrediction">--</div>
+      <label>Current Period</label>
+      <div id="currentPeriod">--</div>
+    </div>
+    <div class="card-section">
+      <h3>Today's Prediction Stats</h3>
+      <div id="stats">Loading... <span class="loader"></span></div>
+    </div>
+    <div class="status-indicator" id="statusMsg"></div>
+  </div>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDfS_Xpq8i2BAWd8OSdW0Nl74e-enNDifM",
+      authDomain: "tradar-x-mods.firebaseapp.com",
+      databaseURL: "https://tradar-x-mods-default-rtdb.firebaseio.com",
+      projectId: "tradar-x-mods",
+      storageBucket: "tradar-x-mods.firebasestorage.app",
+      messagingSenderId: "121099692354",
+      appId: "1:121099692354:web:52a04c4c52eeff259540db"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function loadAdminData() {
+      db.ref("auth/accessKey").once("value").then(snapshot => {
+        document.getElementById("accessKeyInput").value = snapshot.val();
+      });
+      db.ref("control").once("value").then(snapshot => {
+        const control = snapshot.val() || {};
+        document.getElementById("predictionSwitch").value = String(control.isActive ?? true);
+        document.getElementById("expiryDateInput").value = control.expiryDate || "";
+        document.getElementById("bgAI").value = String(control.bgAI ?? true);
+        updateFlagDisplay(control.isActive);
+      });
+      db.ref("latestPrediction").once("value").then(snapshot => {
+        const data = snapshot.val();
+        document.getElementById("currentPrediction").textContent = data?.prediction || "--";
+        const date = new Date(data?.timestamp || Date.now());
+        const ist = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
+        const h = ist.getHours(), m = ist.getMinutes();
+        const elapsed = (h * 60 + m) - (5 * 60 + 29);
+        const pad = n => String(n).padStart(2, '0');
+        const periodStr = `${ist.getFullYear()}${pad(ist.getMonth() + 1)}${pad(ist.getDate())}10001${String(Math.max(elapsed, 0)).padStart(4, '0')}`;
+        document.getElementById("currentPeriod").textContent = periodStr;
+        loadStats();
+      });
+    }
+
+    function updateAccessKey() {
+      db.ref("auth/accessKey").set(document.getElementById("accessKeyInput").value);
+      showStatus("Access key updated!");
+    }
+
+    function updateSwitch() {
+      const isActive = document.getElementById("predictionSwitch").value === "true";
+      db.ref("control/isActive").set(isActive);
+      updateFlagDisplay(isActive);
+      showStatus("Prediction switch updated!");
+    }
+
+    function updateExpiryDate() {
+      const date = document.getElementById("expiryDateInput").value;
+      if (date) {
+        db.ref("control/expiryDate").set(date);
+        showStatus("Expiry date updated!");
+      }
+    }
+
+    function updateBgAI() {
+      db.ref("control/bgAI").set(document.getElementById("bgAI").value === "true");
+      showStatus("Background AI setting updated!");
+    }
+
+    function setManualPrediction() {
+      const prediction = document.getElementById("manualPrediction").value;
+      const timestamp = Date.now();
+      const dateKey = new Date().toISOString().slice(0, 10);
+      db.ref("latestPrediction").set({ prediction, timestamp });
+      db.ref(`history/${dateKey}/period_${timestamp}`).set(prediction);
+      showStatus("Manual prediction updated!");
+      loadAdminData();
+    }
+
+    function loadStats() {
+      const dateKey = new Date().toISOString().slice(0, 10);
+      db.ref(`history/${dateKey}`).once("value").then(snapshot => {
+        const history = snapshot.val();
+        if (!history) return document.getElementById("stats").textContent = "No data";
+        let big = 0, small = 0;
+        for (const key in history) {
+          if (history[key] === "BIG") big++;
+          if (history[key] === "SMALL") small++;
+        }
+        const total = big + small;
+        const percentBig = total ? ((big / total) * 100).toFixed(1) : 0;
+        document.getElementById("stats").innerHTML = `Total: ${total}<br>BIG: ${big}<br>SMALL: ${small}<br>BIG %: ${percentBig}%`;
+      });
+    }
+
+    function showStatus(msg) {
+      const el = document.getElementById("statusMsg");
+      el.textContent = msg;
+      el.style.color = '#00ffea';
+      el.style.animation = 'slideIn 0.5s ease-in-out';
+      setTimeout(() => {
+        el.textContent = "";
+        el.style.animation = '';
+      }, 3000);
+    }
+
+    function updateFlagDisplay(isActive) {
+      const el = document.getElementById("predictionStatus");
+      if (isActive) {
+        el.className = "indicator on";
+        el.textContent = "PREDICTION STATUS: ON";
+      } else {
+        el.className = "indicator off";
+        el.textContent = "PREDICTION STATUS: OFF";
+      }
+    }
+
+    function generateSmartPrediction(history) {
+      if (!history || history.length < 2) return Math.random() < 0.5 ? "BIG" : "SMALL";
+      const last = history[history.length - 1];
+      const secondLast = history[history.length - 2];
+      if (last === secondLast) return last === "BIG" ? "SMALL" : "BIG";
+      return last;
+    }
+
+    function runAIEngine() {
+      setInterval(() => {
+        db.ref("control").once("value").then(controlSnap => {
+          const { isActive, expiryDate, bgAI } = controlSnap.val() || {};
+          const today = new Date().toISOString().slice(0, 10);
+          if (!isActive || !bgAI || today > expiryDate) return;
+
+          db.ref(`history/${today}`).once("value").then(historySnap => {
+            const historyObj = historySnap.val() || {};
+            const recent = Object.values(historyObj).slice(-10);
+            const prediction = generateSmartPrediction(recent);
+            const timestamp = Date.now();
+
+            db.ref("latestPrediction").set({ prediction, timestamp });
+            db.ref(`history/${today}/period_${timestamp}`).set(prediction);
+            console.log("AI Prediction:", prediction);
+          });
+        });
+      }, 60000);
+    }
+
+    loadAdminData();
+    runAIEngine();
+  </script>
+</body>
+</html>
